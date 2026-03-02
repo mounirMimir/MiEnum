@@ -4,7 +4,7 @@ export type TypeMt<T> = {
 
 export type EnumType<T> = setmetatable<{
 	Count: number,
-	IsEnumItem : (self : EnumType<T>,item : MiEnumItem<T>) -> boolean,
+	IsEnumItem : (self : EnumType<T>,item : any) -> boolean,
 	IsValid: (self : EnumType<T> ,key: string | number) -> boolean,
 	GetEnumItems : (self : EnumType<T>) -> {MiEnumItem<T>},
 	FromName : (self : EnumType<T>,_ : string) -> MiEnumItem<T>?,

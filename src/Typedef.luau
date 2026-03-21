@@ -1,6 +1,8 @@
--- Version 1.0.0
+-- Version 1.0.1
 export type TypeMt<T> = {
-	__tostring : () -> string,
+	__tostring : (self : EnumTypeInternal<T>) -> string,
+	__concat : (self : EnumTypeInternal<T>,value : string) -> string,
+	__newindex : () -> nil,
 }
 
 export type EnumType<T> = setmetatable<{
@@ -14,8 +16,14 @@ export type EnumType<T> = setmetatable<{
 	[keyof<T>] : MiEnumItem<T>
 },TypeMt<T>>
 
+export type EnumTypeInternal<T> = EnumType<T> & {
+	_Name : string
+}
+
 export type ItemMt<T> = {
-	__tostring : () -> string,
+	__tostring : (self : MiEnumItemInternal<T>) -> string,
+	__concat : (self : MiEnumItemInternal<T>,value : string) -> string,
+	__newindex : () -> nil,
 }
 
 export type MiEnumItem<T> = setmetatable<{
@@ -23,5 +31,9 @@ export type MiEnumItem<T> = setmetatable<{
 	Value: number,
 	EnumType : EnumType<T>,
 },ItemMt<T>>
+
+export type MiEnumItemInternal<T> = MiEnumItem<T> & {
+	_EnumName : string
+}
 
 return {}

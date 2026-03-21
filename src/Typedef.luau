@@ -1,3 +1,4 @@
+-- Version 1.0.0
 export type TypeMt<T> = {
 	__tostring : () -> string,
 }

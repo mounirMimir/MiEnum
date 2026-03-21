@@ -3,24 +3,49 @@
 -- MiEnum Module
 -- Author: Mimir (Roblox: mounirgue)
 -- Created: 2026
--- Version: 1.0.0
+-- Version: 1.0.1
 -- MIT License
 --==============================================================
-local MiEnumType = require("@self/Typedef")
+local MiEnumType = require(script.Typedef)
 
 local keyWords = {
-	"Count","IsValid","GetEnumItems","FromName","FromValue","IsEnumItem"
+	"Count","IsValid","GetEnumItems","FromName","FromValue","IsEnumItem","Name"
 }
 
 local alreadyTakenEnumNames = {}
+
+---- Metatables ----
+local itemMt : MiEnumType.ItemMt<{any}> = {
+	__tostring = function(self)
+		return tostring(self.EnumType).."."..self._EnumName
+	end,
+	
+	__concat = function(self,value)
+		return tostring(self)..tostring(value)
+	end,
+	
+	__newindex = function()
+		error("Cannot modify enum item",0)
+	end,
+}
+
+local enumMt : MiEnumType.TypeMt<{any}> = {
+	__tostring = function(self)
+		return self._Name
+	end,
+	
+	__concat = function(self,value)
+		return tostring(self)..tostring(value)
+	end,
+	
+	__newindex = function()
+		error("Cannot modify enum",0)
+	end,
+}
+
 ---- Functions ----
 
 local function CreateEnumItem<T>(name : string, value : number,enum : MiEnum<T>) : MiEnumItem<T>
-	local itemMt : MiEnumType.ItemMt<T> = {
-		__tostring = function()
-			return tostring(enum).."."..name
-		end,
-	}
 	
 	local enumItem ={
 		Name = name,
@@ -30,7 +55,7 @@ local function CreateEnumItem<T>(name : string, value : number,enum : MiEnum<T>)
 	
 	setmetatable(enumItem,itemMt)
 	
-	return table.freeze(enumItem)
+	return enumItem
 end
 
 
@@ -39,7 +64,7 @@ export type MiEnum<T> = MiEnumType.EnumType<T>
 export type MiEnumItem<T> = MiEnumType.MiEnumItem<T>
 
 local MiEnum = {}
-MiEnum.__Version = "1.0.0"
+MiEnum.__Version = "1.0.1"
 
 local ModMt = {
 	__tostring = function()
@@ -128,16 +153,10 @@ function MiEnum.CreateEnum<T>(name : string, definitions : T): MiEnum<T>
 	function Enum.FromValue(self, value : number) 
 		return valueToEnumItem[value]
 	end
-	
-	local mt : MiEnumType.TypeMt<T> = {
-		__tostring = function()
-			return "MiEnum."..name
-		end,
-	}
 
-	setmetatable(Enum,mt)
-	
-	return table.freeze(Enum)
+	return setmetatable(Enum,enumMt)
 end
 
-return MiEnum
+return {
+	CreateEnum = MiEnum.CreateEnum,
+}

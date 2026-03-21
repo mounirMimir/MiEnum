@@ -4,10 +4,7 @@
 -- Author: Mimir (Roblox: mounirgue)
 -- Created: 2026
 -- Version: 1.0.0
-
--- You may use this module in your games.
--- Credit must be given to @mounirgue.
--- Reuploading or claiming authorship is prohibited.
+-- MIT License
 --==============================================================
 local MiEnumType = require("@self/Typedef")
 

@@ -9,7 +9,7 @@
 local MiEnumType = require(script.Typedef)
 
 local keyWords = {
-	"Count","IsValid","GetEnumItems","FromName","FromValue","IsEnumItem","Name"
+	"Count","IsValid","GetEnumItems","FromName","FromValue","IsEnumItem","_Name"
 }
 
 local alreadyTakenEnumNames = {}
@@ -17,7 +17,7 @@ local alreadyTakenEnumNames = {}
 ---- Metatables ----
 local itemMt : MiEnumType.ItemMt<{any}> = {
 	__tostring = function(self)
-		return tostring(self.EnumType).."."..self._EnumName
+		return `{self.EnumType}.{self._EnumName}`
 	end,
 
 	__concat = function(self,value)
@@ -35,7 +35,7 @@ local enumMt : MiEnumType.TypeMt<{any}> = {
 	end,
 
 	__concat = function(self,value)
-		return tostring(self)..tostring(value)
+		return `{self}.{value}`
 	end,
 
 	__newindex = function()
@@ -60,6 +60,7 @@ end
 
 
 ---- Types ----
+type MiEnumInternal<T> = MiEnumType.EnumTypeInternal<T>
 export type MiEnum<T> = MiEnumType.EnumType<T>
 export type MiEnumItem<T> = MiEnumType.MiEnumItem<T>
 
@@ -80,7 +81,7 @@ function MiEnum.CreateEnum<T>(name : string, definitions : T): MiEnum<T>
 	assert(typeof(definitions) == "table","Definitions must be a table with string or numbered indices errored for "..name)
 
 
-	local Enum = {} :: MiEnum<T>
+	local Enum = {} :: MiEnumInternal<T>
 	local valueToEnumItem : {[number] : MiEnumItem<T>} = {}
 	local keyToEnumItem : {[string] : MiEnumItem<T>} = {}
 
@@ -119,11 +120,13 @@ function MiEnum.CreateEnum<T>(name : string, definitions : T): MiEnum<T>
 
 	table.insert(alreadyTakenEnumNames,name)
 
-	for key,value in pairs(keyToEnumItem) do
+	for key, value in pairs(keyToEnumItem) do
 		Enum[key :: keyof<T>] = value
 	end
 
 	Enum.Count = count
+	
+	Enum._Name = name
 
 	function Enum.IsEnumItem(self : MiEnum<T>,item : MiEnumItem<T>) : boolean
 		return getmetatable(item.EnumType) == getmetatable(self)
@@ -135,7 +138,7 @@ function MiEnum.CreateEnum<T>(name : string, definitions : T): MiEnum<T>
 		elseif typeof(key) == "number" then
 			return valueToEnumItem[key] ~= nil
 		end
-		error("Passed "..typeof(key).." expected ".."string or number")
+		error("Passed "..typeof(key).." expected".." string or number")
 	end
 
 	function Enum.GetEnumItems(self)

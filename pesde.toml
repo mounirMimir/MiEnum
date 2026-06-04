@@ -1,0 +1,11 @@
+name = "mimir/mienum"
+version = "0.1.0"
+authors = ["mimir"]
+license = "MIT"
+
+[target]
+environment = "roblox"
+lib = "MiEnum/init.luau"
+
+[indices]
+default = "https://github.com/pesde-pkg/index"

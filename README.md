@@ -1,8 +1,6 @@
 # MiEnum
 a simple enum module for luau. nothing crazy, just makes working with enums cleaner and type-safe.
 
-**v2.0.0** — adds scoped enums and fixes error reporting to always point at your code.
-
 ---
 
 ## what it does

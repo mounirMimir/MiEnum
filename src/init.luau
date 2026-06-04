@@ -1,51 +1,64 @@
 --!strict
 --==============================================================
 -- MiEnum Module
--- Author: Mimir (Roblox: mounirgue)
+-- Author: Mimir
 -- Created: 2026
--- Version: 2.0.0
+-- Version: 0.1.0
 -- MIT License
 --==============================================================
-local Typedef = require(script.Typedef)
-type Enum<T> = Typedef.Enum<T>
-type EnumItem<T> = Typedef.EnumItem<T>
+local Typedef = require("@self/Typedef")
+export type Enum<T> = Typedef.Enum<T>
+export type EnumItem<T> = Typedef.EnumItem<T>
 
 local keyWords = {
-	"Count","GetEnumItems","FromName","FromValue","IsEnumItem","_Name"
+	"Count",
+	"GetEnumItems",
+	"FromName",
+	"FromValue",
+	"IsEnumItem",
+	"_Name",
 }
 ---- Metatables ----
-local itemMt: Typedef.EnumItemMt<{any}> = {
+local itemMt: Typedef.EnumItemMt<{ any }> = {
 	__tostring = function(self)
 		return `{self.EnumType}.{self.Name}`
 	end,
-	__concat = function(self,value)
+	__concat = function(self, value)
 		return `{self}{value}`
 	end,
 }
 
-local enumMt: Typedef.EnumMt<{any}> = {
+local enumMt: Typedef.EnumMt<{ any }> = {
 	__tostring = function(self)
 		return self._Name
 	end,
-	__concat = function(self,value)
+	__concat = function(self, value)
 		return `{self}{value}`
 	end,
 	__newindex = function(self)
-		error("Cannot modify enum",0)
+		error("Cannot modify enum", 0)
 	end,
 }
 
 ---- Functions ----
-local function AssertDefinitionTable(definitionTable: {[string]: number}, level: number)
+local function AssertDefinitionTable(definitionTable: { [string]: number }, level: number)
 	if typeof(definitionTable) ~= "table" then
 		error(`Invalid argument #2 (table expected, got {typeof(definitionTable)})`, level)
 	end
 	local values = {}
 	for key, value in definitionTable do
-		if typeof(key) ~= "string" then error(`Invalid argument #2 (string key expected, got {typeof(key)})`, level) end
-		if table.find(keyWords, key) then error(`Invalid argument #2 (reserved word {key})`, level) end
-		if typeof(value) ~= "number" then error(`Invalid argument #2 (number value expected, got {typeof(value)})`, level) end
-		if table.find(values, value) then error(`Invalid argument #2 (duplicate value {value})`, level) end
+		if typeof(key) ~= "string" then
+			error(`Invalid argument #2 (string key expected, got {typeof(key)})`, level)
+		end
+		if table.find(keyWords, key) then
+			error(`Invalid argument #2 (reserved word {key})`, level)
+		end
+		if typeof(value) ~= "number" then
+			error(`Invalid argument #2 (number value expected, got {typeof(value)})`, level)
+		end
+		if table.find(values, value) then
+			error(`Invalid argument #2 (duplicate value {value})`, level)
+		end
 		table.insert(values, value)
 	end
 end
@@ -64,8 +77,8 @@ local function CreateEnum<T>(name: string, definitions: T, callerLevel: number?)
 		error(`Invalid argument #1 (string expected, got {typeof(name)})`, lvl)
 	end
 	AssertDefinitionTable(definitions :: any, lvl + 1)
-	local valueToItem: {[number]: EnumItem<T>} = {}
-	local nameToItem: {[string]: EnumItem<T>} = {}
+	local valueToItem: { [number]: EnumItem<T> } = {}
+	local nameToItem: { [string]: EnumItem<T> } = {}
 	local Enum = {} :: Typedef.EnumInternal<T>
 
 	Enum._Name = name
@@ -86,15 +99,21 @@ local function CreateEnum<T>(name: string, definitions: T, callerLevel: number?)
 		end
 		return false
 	end
-	function Enum:GetEnumItems() return valueToItem end
-	function Enum:FromName(n: string) return nameToItem[n] end
-	function Enum:FromValue(v: number) return valueToItem[v] end
+	function Enum:GetEnumItems()
+		return valueToItem
+	end
+	function Enum:FromName(n: string)
+		return nameToItem[n]
+	end
+	function Enum:FromValue(v: number)
+		return valueToItem[v]
+	end
 	return setmetatable(Enum, enumMt)
 end
 
 ---- MiEnum ----
 local MiEnum = {}
-local ScopeNames: {string} = {}
+local ScopeNames: { string } = {}
 
 function MiEnum.NewScope(scopeName: string)
 	if typeof(scopeName) ~= "string" then
@@ -106,7 +125,7 @@ function MiEnum.NewScope(scopeName: string)
 	table.insert(ScopeNames, scopeName)
 
 	local scope = {}
-	local CreatedEnums: {[string]: Enum<{any}>} = {}
+	local CreatedEnums: { [string]: Enum<{ any }> } = {}
 
 	function scope.CreateEnum<T>(name: string, definitions: T): Enum<T>
 		if CreatedEnums[name] then
@@ -121,5 +140,8 @@ function MiEnum.NewScope(scopeName: string)
 	return scope
 end
 
-MiEnum.CreatePrivateEnum = CreateEnum
+MiEnum.CreateEnum = function(name: string, definition)
+	return CreateEnum(name, definition, 2)
+end
+
 return MiEnum

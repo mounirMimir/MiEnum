@@ -48,7 +48,7 @@ trying to create two scopes with the same name, or two enums with the same name 
 if you just need a quick local enum that isn't part of any shared scope:
 
 ```lua
-local WeaponType = MiEnum.CreatePrivateEnum("WeaponType", {
+local WeaponType = MiEnum.CreateEnum("WeaponType", {
     Sword = 1,
     Bow   = 2,
     Staff = 3,

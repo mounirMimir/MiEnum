@@ -1,5 +1,5 @@
 --!strict
--- Version 0.1.0
+-- Version 0.1.3-rc.1
 export type EnumMt<T> = {
 	__tostring : (self : EnumInternal<T>) -> string,
 	__concat : (self : EnumInternal<T>,value : string) -> string,
@@ -12,7 +12,7 @@ export type Enum<T> = setmetatable<{
 	GetEnumItems : (self : Enum<T>) -> {EnumItem<T>},
 	FromName : (self : Enum<T>,_ : string) -> EnumItem<T>?,
 	FromValue : (self : Enum<T>,_ : number) -> EnumItem<T>?,
-} &  {[keyof<T>]: EnumItem<T>},EnumMt<T>>
+} &  { read [keyof<T>]: EnumItem<T>},EnumMt<T>>
 
 export type EnumInternal<T> = Enum<T> & {
 	_Name : string

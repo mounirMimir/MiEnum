@@ -3,7 +3,7 @@
 -- MiEnum Module
 -- Author: Mimir
 -- Created: 2026
--- Version: 0.1.0
+-- Version: 0.1.3-rc.1
 -- MIT License
 --==============================================================
 local Typedef = require("@self/Typedef")

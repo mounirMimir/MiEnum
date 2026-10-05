@@ -1,5 +1,5 @@
 --!strict
--- Version 0.1.3-rc.1
+-- Version 0.1.3
 export type EnumMt<T> = {
 	__tostring : (self : EnumInternal<T>) -> string,
 	__concat : (self : EnumInternal<T>,value : string) -> string,

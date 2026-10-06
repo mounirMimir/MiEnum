@@ -3,7 +3,7 @@
 -- MiEnum Module
 -- Author: Mimir
 -- Created: 2026
--- Version: 0.1.4-rc.1
+-- Version: 0.1.4-rc.2
 -- MIT License
 --==============================================================
 const Typedef = require("@self/Typedef")
@@ -108,7 +108,7 @@ const function CreateEnum<T>(name: string, definitions: T & { [string]: number }
 		count += 1
 	end
 
-	const Enum: EnumInternal<T> = setmetatable({
+	const Enum: any = {
 		_Name = name,
 		_ValueToItem = {},
 		_NameToItem = {},
@@ -118,7 +118,7 @@ const function CreateEnum<T>(name: string, definitions: T & { [string]: number }
 		FromName = FromName,
 		FromValue = FromValue,
 		GetEnumItems = GetEnumItems,
-	}, enumMt) :: any
+	}
 
 	for key, value in pairs(definitions) do
 		const enumItem = CreateEnumItem(key, value, Enum)
@@ -127,7 +127,7 @@ const function CreateEnum<T>(name: string, definitions: T & { [string]: number }
 		Enum[key] = enumItem
 	end
 
-	return Enum
+	return setmetatable(Enum :: any, enumMt)
 end
 
 ---- MiEnum ----

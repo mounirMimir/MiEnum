@@ -43,11 +43,11 @@ const enumMt: Typedef.EnumMt<{ any }> = {
 
 ---- Functions ----
 
-local function AssertDefinitionTable(definitionTable: { [string]: number }, level: number)
+const function AssertDefinitionTable(definitionTable: { [string]: number }, level: number)
 	if typeof(definitionTable) ~= "table" then
 		error(`Invalid argument #2 (table expected, got {typeof(definitionTable)})`, level)
 	end
-	local values = {}
+	const values = {}
 	for key, value in definitionTable do
 		if typeof(key) ~= "string" then
 			error(`Invalid argument #2 (string key expected, got {typeof(key)})`, level)
@@ -65,7 +65,7 @@ local function AssertDefinitionTable(definitionTable: { [string]: number }, leve
 	end
 end
 
-local function CreateEnumItem<T>(name: string, value: number, enum: Enum<T>): EnumItem<T>
+const function CreateEnumItem<T>(name: string, value: number, enum: Enum<T>): EnumItem<T>
 	return table.freeze(setmetatable({
 		Name = name,
 		Value = value,
@@ -75,7 +75,7 @@ end
 
 const function IsEnumItem<T>(self: EnumInternal<T>, item: EnumItem<T>)
 	if typeof(item) == "table" then
-		local EnumType = item.EnumType
+		const EnumType = item.EnumType
 		return EnumType and EnumType == self
 	end
 	return false
@@ -93,8 +93,8 @@ const function GetEnumItems<T>(self: EnumInternal<T>)
 	return self._ValueToItem
 end
 
-local function CreateEnum<T>(name: string, definitions: T & { [string]: number }, callerLevel: number?): Enum<T>
-	local lvl = callerLevel or 2
+const function CreateEnum<T>(name: string, definitions: T & { [string]: number }, callerLevel: number?): Enum<T>
+	const lvl = callerLevel or 2
 
 	if typeof(name) ~= "string" then
 		error(`Invalid argument #1 (string expected, got {typeof(name)})`, lvl)
@@ -108,7 +108,7 @@ local function CreateEnum<T>(name: string, definitions: T & { [string]: number }
 		count += 1
 	end
 
-	local Enum: EnumInternal<T> = setmetatable({
+	const Enum: EnumInternal<T> = setmetatable({
 		_Name = name,
 		_ValueToItem = {},
 		_NameToItem = {},
@@ -121,7 +121,7 @@ local function CreateEnum<T>(name: string, definitions: T & { [string]: number }
 	}, enumMt) :: any
 
 	for key, value in pairs(definitions) do
-		local enumItem = CreateEnumItem(key, value, Enum)
+		const enumItem = CreateEnumItem(key, value, Enum)
 		Enum._ValueToItem[value] = enumItem
 		Enum._NameToItem[key] = enumItem
 		Enum[key] = enumItem
@@ -131,8 +131,8 @@ local function CreateEnum<T>(name: string, definitions: T & { [string]: number }
 end
 
 ---- MiEnum ----
-local MiEnum = {}
-local ScopeNames: { string } = {}
+const MiEnum = {}
+const ScopeNames: { string } = {}
 
 function MiEnum.NewScope(scopeName: string)
 	if typeof(scopeName) ~= "string" then
@@ -145,8 +145,8 @@ function MiEnum.NewScope(scopeName: string)
 
 	table.insert(ScopeNames, scopeName)
 
-	local scope = {}
-	local CreatedEnums: { [string]: Enum<{ any }> } = {}
+	const scope = {}
+	const CreatedEnums: { [string]: Enum<{ any }> } = {}
 
 	function scope.CreateEnum<T>(name: string)
 		if CreatedEnums[name] then
@@ -154,7 +154,7 @@ function MiEnum.NewScope(scopeName: string)
 		end
 
 		return function<T>(definitions: T): Enum<T>
-			local enum = CreateEnum(name, definitions, 3)
+			const enum = CreateEnum(name, definitions, 3)
 			CreatedEnums[name] = enum
 			return enum
 		end

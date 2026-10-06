@@ -3,14 +3,15 @@
 -- MiEnum Module
 -- Author: Mimir
 -- Created: 2026
--- Version: 0.1.3
+-- Version: 0.1.4-rc.1
 -- MIT License
 --==============================================================
-local Typedef = require("@self/Typedef")
+const Typedef = require("@self/Typedef")
 export type Enum<T> = Typedef.Enum<T>
 export type EnumItem<T> = Typedef.EnumItem<T>
+type EnumInternal<T> = Typedef.EnumInternal<T>
 
-local keyWords = {
+const keyWords = {
 	"Count",
 	"GetEnumItems",
 	"FromName",
@@ -19,7 +20,7 @@ local keyWords = {
 	"_Name",
 }
 ---- Metatables ----
-local itemMt: Typedef.EnumItemMt<{ any }> = {
+const itemMt: Typedef.EnumItemMt<{ any }> = {
 	__tostring = function(self)
 		return `{self.EnumType}.{self.Name}`
 	end,
@@ -28,7 +29,7 @@ local itemMt: Typedef.EnumItemMt<{ any }> = {
 	end,
 }
 
-local enumMt: Typedef.EnumMt<{ any }> = {
+const enumMt: Typedef.EnumMt<{ any }> = {
 	__tostring = function(self)
 		return self._Name
 	end,
@@ -41,6 +42,7 @@ local enumMt: Typedef.EnumMt<{ any }> = {
 }
 
 ---- Functions ----
+
 local function AssertDefinitionTable(definitionTable: { [string]: number }, level: number)
 	if typeof(definitionTable) ~= "table" then
 		error(`Invalid argument #2 (table expected, got {typeof(definitionTable)})`, level)
@@ -71,44 +73,61 @@ local function CreateEnumItem<T>(name: string, value: number, enum: Enum<T>): En
 	}, itemMt))
 end
 
-local function CreateEnum<T>(name: string, definitions: T, callerLevel: number?): Enum<T>
+const function IsEnumItem<T>(self: EnumInternal<T>, item: EnumItem<T>)
+	if typeof(item) == "table" then
+		local EnumType = item.EnumType
+		return EnumType and EnumType == self
+	end
+	return false
+end
+
+const function FromName<T>(self: EnumInternal<T>, name: string)
+	return self._NameToItem[name]
+end
+
+const function FromValue<T>(self: EnumInternal<T>, value: number)
+	return self._ValueToItem[value]
+end
+
+const function GetEnumItems<T>(self: EnumInternal<T>)
+	return self._ValueToItem
+end
+
+local function CreateEnum<T>(name: string, definitions: T & { [string]: number }, callerLevel: number?): Enum<T>
 	local lvl = callerLevel or 2
+
 	if typeof(name) ~= "string" then
 		error(`Invalid argument #1 (string expected, got {typeof(name)})`, lvl)
 	end
-	AssertDefinitionTable(definitions :: any, lvl + 1)
-	local valueToItem: { [number]: EnumItem<T> } = {}
-	local nameToItem: { [string]: EnumItem<T> } = {}
-	local Enum = {} :: Typedef.EnumInternal<T>
 
-	Enum._Name = name
-	Enum.Count = 0
-	for key, value in definitions :: any do
+	AssertDefinitionTable(definitions, lvl + 1)
+
+	local count = 0
+
+	for key, value in pairs(definitions) do
+		count += 1
+	end
+
+	local Enum: EnumInternal<T> = setmetatable({
+		_Name = name,
+		_ValueToItem = {},
+		_NameToItem = {},
+
+		Count = count,
+		IsEnumItem = IsEnumItem,
+		FromName = FromName,
+		FromValue = FromValue,
+		GetEnumItems = GetEnumItems,
+	}, enumMt) :: any
+
+	for key, value in pairs(definitions) do
 		local enumItem = CreateEnumItem(key, value, Enum)
-		valueToItem[value] = enumItem
-		nameToItem[key] = enumItem
+		Enum._ValueToItem[value] = enumItem
+		Enum._NameToItem[key] = enumItem
 		Enum[key] = enumItem
-		Enum.Count += 1
 	end
-	table.freeze(valueToItem)
-	table.freeze(nameToItem)
-	function Enum:IsEnumItem(item)
-		if typeof(item) == "table" then
-			local EnumType = item.EnumType
-			return EnumType and EnumType == Enum
-		end
-		return false
-	end
-	function Enum:GetEnumItems()
-		return valueToItem
-	end
-	function Enum:FromName(n: string)
-		return nameToItem[n]
-	end
-	function Enum:FromValue(v: number)
-		return valueToItem[v]
-	end
-	return setmetatable(Enum, enumMt)
+
+	return Enum
 end
 
 ---- MiEnum ----
@@ -119,22 +138,26 @@ function MiEnum.NewScope(scopeName: string)
 	if typeof(scopeName) ~= "string" then
 		error(`Invalid argument #1 (string expected, got {typeof(scopeName)})`, 2)
 	end
+
 	if table.find(ScopeNames, scopeName) then
 		error(`Scope {scopeName} already exists`, 2)
 	end
+
 	table.insert(ScopeNames, scopeName)
 
 	local scope = {}
 	local CreatedEnums: { [string]: Enum<{ any }> } = {}
 
-	function scope.CreateEnum<T>(name: string, definitions: T): Enum<T>
+	function scope.CreateEnum<T>(name: string)
 		if CreatedEnums[name] then
 			error(`Enum {name} already exists in scope {scopeName}`, 2)
 		end
 
-		local enum = CreateEnum(name, definitions, 3)
-		CreatedEnums[name] = enum
-		return enum
+		return function<T>(definitions: T): Enum<T>
+			local enum = CreateEnum(name, definitions, 3)
+			CreatedEnums[name] = enum
+			return enum
+		end
 	end
 
 	return scope
@@ -142,6 +165,12 @@ end
 
 MiEnum.CreateEnum = function(name: string, definition)
 	return CreateEnum(name, definition, 2)
+end
+
+MiEnum.NewEnum = function(name: string)
+	return function(definition)
+		return CreateEnum(name, definition, 3)
+	end
 end
 
 return MiEnum

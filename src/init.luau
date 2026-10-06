@@ -163,10 +163,6 @@ function MiEnum.NewScope(scopeName: string)
 	return scope
 end
 
-MiEnum.CreateEnum = function(name: string, definition)
-	return CreateEnum(name, definition, 2)
-end
-
 MiEnum.NewEnum = function(name: string)
 	return function(definition)
 		return CreateEnum(name, definition, 3)
